@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class BuildingBehavior : MonoBehaviour {
 
-    public bool placing;
+    private bool dragging;
+
+    private bool placed;
 
     private SpriteRenderer spriteRenderer;
 
@@ -23,11 +24,48 @@ public class BuildingBehavior : MonoBehaviour {
             }
             //if (child.) 
         }
+
+        UpdatePlacedDraggingState();
     }
 	
 	// Update is called once per frame
 	void Update () {
-	    if (placing) {
+
+
+
+	}
+
+    public void ConfirmPlacement() {
+        placed = true;
+        dragging = false;
+        UpdatePlacedDraggingState();
+    }
+
+    public void SetDragging(bool dragging) {
+        this.dragging = dragging;
+        UpdatePlacedDraggingState();
+    }
+
+    public bool IsDragging() {
+        return dragging;
+    }
+
+
+    public void SetPlaced(bool placed) {
+        this.placed = placed;
+        UpdatePlacedDraggingState();
+    }
+
+    private void UpdatePlacedDraggingState() {
+        if (placed) {
+            Color spriteColor = spriteRenderer.color;
+            spriteColor.a = 1f;
+            spriteRenderer.color = spriteColor;
+            confirmButton.SetActive(false);
+            cancelButton.SetActive(false);
+            //GetComponent<BoxCollider2D>().SetActive(false);
+            this.gameObject.GetComponent<BoxCollider2D>().enabled = false;
+        } else if (dragging) {
             Color spriteColor = spriteRenderer.color;
             spriteColor.a = 0.6f;
             spriteRenderer.color = spriteColor;
@@ -35,10 +73,10 @@ public class BuildingBehavior : MonoBehaviour {
             cancelButton.SetActive(false);
         } else {
             Color spriteColor = spriteRenderer.color;
-            spriteColor.a = 1f;
+            spriteColor.a = 0.6f;
             spriteRenderer.color = spriteColor;
             confirmButton.SetActive(true);
             cancelButton.SetActive(true);
         }
-	}
+    }
 }

@@ -2,28 +2,16 @@
 using System;
 using System.Collections.Generic;
 
-public enum TouchState {
-    None,
-    Tapping,
-    Dragging,
-}
-
 public class TouchManager : IObservable<TouchGesture> {
-
-    
+   
     private const float DRAG_DISTANCE = 8f;
     private const float TAP_TIME = 0.3f;
 
-    public Vector2 originPosition;
-    public Vector2 currentPosition;
-    private DateTime startTime;
-
-    public TouchState touchState;
+    private TouchGesture touchGesture;
 
     private List<IObserver<TouchGesture>> observers = new List<IObserver<TouchGesture>>();
 
-
-    public void UpdateTouches() {
+        public void UpdateTouches() {
         foreach(Touch touch in Input.touches) {
             HandleTouch(touch.fingerId, touch.position, touch.phase);
         }
@@ -45,43 +33,38 @@ public class TouchManager : IObservable<TouchGesture> {
             return;
         }
 
-        TouchGesture gesture = new TouchGesture();
-        gesture.startPosition = originPosition;
-        gesture.endPosition = currentPosition;
-
-        currentPosition = pos;
         if (touchPhase == TouchPhase.Began) {
-            originPosition = pos;
-            startTime = DateTime.Now;
-            //Debug.Log("Setting startTime to: " + now.ToUniversalTime().ToString());
-            touchState = TouchState.Tapping;
+
+            touchGesture = new TouchGesture();
+            touchGesture.startPosition = pos;
+            touchGesture.startTime = DateTime.Now;
+            touchGesture.endPosition = pos;
+            touchGesture.type = TouchGestureType.Tap;
+            //Debug.Log("Setting tap");
+            
         } else if (touchPhase == TouchPhase.Moved || touchPhase == TouchPhase.Stationary) {
-            //Debug.Log("startTime" + startTime.ToUniversalTime().ToString());
-            //Debug.Log("now" + now.ToUniversalTime().ToString());
-            //Debug.Log("Time interval: " + (now - startTime).TotalSeconds);
+            touchGesture.endPosition = pos;
 
-            if (touchState == TouchState.Tapping && DateTime.Now.Subtract(startTime).TotalSeconds >= TAP_TIME) {
-                touchState = TouchState.None;
+            if (touchGesture.type == TouchGestureType.Tap && DateTime.Now.Subtract(touchGesture.startTime).TotalSeconds >= TAP_TIME) {
+
+                touchGesture.type = TouchGestureType.None;
             }
-
-            //Debug.Log("dist: " + Vector2.Distance(originPosition, pos).ToString("R"));
-
-            if (Vector2.Distance(originPosition, pos) >= DRAG_DISTANCE) {
-                touchState = TouchState.Dragging;
-                gesture.type = TouchGestureType.Drag;
-                DoObserveStuff(gesture);
+            
+            if (Vector2.Distance(touchGesture.startPosition, touchGesture.endPosition) >= DRAG_DISTANCE) {
+                touchGesture.type = TouchGestureType.Drag;
+                DoObserveStuff(touchGesture);
             }
         } else if (touchPhase == TouchPhase.Ended) {
-            if (touchState == TouchState.Dragging) {
-                gesture.type = TouchGestureType.DragEnd;
-                DoObserveStuff(gesture);
-            } else if (touchState == TouchState.Tapping) {
-                gesture.type = TouchGestureType.Tap;
-                DoObserveStuff(gesture);
+            //Debug.Log("touch ended");
+            touchGesture.endPosition = pos;
+            if (touchGesture.type == TouchGestureType.Drag) {
+                touchGesture.type = TouchGestureType.DragEnd;
+                DoObserveStuff(touchGesture);
+            } else if (touchGesture.type == TouchGestureType.Tap) {
+                DoObserveStuff(touchGesture);
             }
         }
     }
-    
 
     private void DoObserveStuff(TouchGesture gesture) {
         foreach(IObserver<TouchGesture> observer in observers) {
