@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.Experimental.Networking;
 using System;
+using UnityEngine.Networking;
 
 public class WebService : MonoBehaviour {
 
-    //private const string ENDPOINT = "http://mobileappserver-186401.appspot.com";
+    // private const string ENDPOINT = "http://mobileappserver-186401.appspot.com";
     private const string ENDPOINT = "http://localhost:8080";
 
     void Start () {
@@ -32,7 +32,7 @@ public class WebService : MonoBehaviour {
         using (UnityWebRequest www = UnityWebRequest.Post(ENDPOINT + "/register", form)) {
             yield return www.Send();
 
-            if (www.isError) {
+            if (www.isNetworkError) {
                 Debug.Log(www.error);
             } else {
                 RegisterResponse resp = JsonUtility.FromJson<RegisterResponse>(www.downloadHandler.text);
@@ -67,7 +67,7 @@ public class WebService : MonoBehaviour {
         using (UnityWebRequest www = UnityWebRequest.Post(ENDPOINT + "/login", form)) {
             yield return www.Send();
 
-            if (www.isError) {
+            if (www.isNetworkError) {
                 Debug.Log(www.error);
             } else {
                 LoginResponse resp = JsonUtility.FromJson<LoginResponse>(www.downloadHandler.text);
@@ -115,7 +115,7 @@ public class WebService : MonoBehaviour {
             yield return www.Send();
             Debug.Log(www.downloadHandler.text);
 
-            if (www.isError) {
+            if (www.isNetworkError) {
                 Debug.Log(www.error);
 
             } else if (www.responseCode != 200) {
@@ -160,7 +160,7 @@ public class WebService : MonoBehaviour {
             yield return www.Send();
             Debug.Log("text: " + www.downloadHandler.text);
 
-            if (www.isError) {
+            if (www.isNetworkError) {
                 Debug.Log(www.error);
 
             } else if (www.responseCode != 200) {
